@@ -1,0 +1,22 @@
+import { Module } from '@nestjs/common';
+import { DatabaseModule } from '@erp/database';
+import { ConfigModule, LoggingModule } from '@erp/shared';
+import { AuthHttpModule } from './auth/auth-http.module.js';
+import { HealthModule } from './health/health.module.js';
+import { PosModule } from './pos/pos.module.js';
+
+/**
+ * Raíz de la API. Aquí solo se registran módulos HTTP (controladores);
+ * la lógica de negocio vive en libs/domain y se importa desde cada módulo HTTP.
+ */
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+    LoggingModule,
+    DatabaseModule,
+    HealthModule,
+    AuthHttpModule,
+    PosModule,
+  ],
+})
+export class AppModule {}
