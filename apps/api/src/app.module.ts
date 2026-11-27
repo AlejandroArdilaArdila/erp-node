@@ -4,6 +4,7 @@ import { ConfigModule, LoggingModule } from '@erp/shared';
 import { AuthHttpModule } from './auth/auth-http.module.js';
 import { HealthModule } from './health/health.module.js';
 import { PosModule } from './pos/pos.module.js';
+import { ProductosHttpModule } from './productos/productos-http.module.js';
 
 /**
  * Raíz de la API. Aquí solo se registran módulos HTTP (controladores);
@@ -17,6 +18,7 @@ import { PosModule } from './pos/pos.module.js';
     HealthModule,
     AuthHttpModule,
     PosModule,
+    ProductosHttpModule,
   ],
 })
 export class AppModule {}
