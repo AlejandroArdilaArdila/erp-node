@@ -17,6 +17,13 @@ export interface FiltroApiKey {
   entidades?: number[];
 }
 
+/** Nombre y apellido tal como están en llx_user (pueden ser NULL). */
+export interface NombreUsuario {
+  id: number;
+  nombre: string | null;
+  apellido: string | null;
+}
+
 /** Usuario con los datos que necesita el login (incluye credenciales: NO exponer). */
 export interface UsuarioParaLogin extends UsuarioAutenticado {
   statut: number;
@@ -87,6 +94,22 @@ export class UsuariosRepositorio {
       )
       .limit(1);
     return fila ? aUsuario(fila) : null;
+  }
+
+  /**
+   * Nombre y apellido de los usuarios dados, sin filtrar estado ni entidad
+   * (como una relación belongsTo de Eloquent). Los ids que no existen no
+   * aparecen en el resultado.
+   */
+  async nombresPorIds(ids: number[]): Promise<NombreUsuario[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    const filas = await this.db
+      .select({ rowid: usuarios.rowid, firstname: usuarios.firstname, lastname: usuarios.lastname })
+      .from(usuarios)
+      .where(inArray(usuarios.rowid, ids));
+    return filas.map((f) => ({ id: f.rowid, nombre: f.firstname, apellido: f.lastname }));
   }
 
   /** Usuario por id, sin filtrar estado (como `tokenable` de Sanctum). */

@@ -3,6 +3,7 @@ import { DatabaseModule } from '@erp/database';
 import { ConfigModule, LoggingModule } from '@erp/shared';
 import { AuthHttpModule } from './auth/auth-http.module.js';
 import { HealthModule } from './health/health.module.js';
+import { MensajesHttpModule } from './mensajes/mensajes-http.module.js';
 import { PosModule } from './pos/pos.module.js';
 import { ProductosHttpModule } from './productos/productos-http.module.js';
 
@@ -19,6 +20,7 @@ import { ProductosHttpModule } from './productos/productos-http.module.js';
     AuthHttpModule,
     PosModule,
     ProductosHttpModule,
+    MensajesHttpModule,
   ],
 })
 export class AppModule {}

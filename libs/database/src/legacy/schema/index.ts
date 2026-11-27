@@ -3,6 +3,7 @@
  * se vaya usando, un archivo por agregado (usuarios, productos, facturas...).
  */
 export * from './categorias.js';
+export * from './chat.js';
 export * from './permisos.js';
 export * from './pos.js';
 export * from './productos.js';
