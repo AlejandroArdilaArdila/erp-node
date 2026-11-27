@@ -21,10 +21,13 @@ export class BloqueosLegado {
     esperaSegundos = 5,
   ): Promise<T> {
     const clave = sql`CONCAT(DATABASE(), ':', ${nombre})`;
-    const [filas] = await tx.execute<{ ok: number | null }>(
+    const [filas] = await tx.execute<{ ok: number | string | null }>(
       sql`SELECT GET_LOCK(${clave}, ${esperaSegundos}) AS ok`,
     );
-    if ((filas as unknown as Array<{ ok: number | null }>)[0]?.ok !== 1) {
+    // GET_LOCK devuelve BIGINT y el pool usa bigNumberStrings: llega como '1', no como 1.
+    // 0 = se agotó la espera; NULL = error en MySQL.
+    const ok = (filas as unknown as Array<{ ok: number | string | null }>)[0]?.ok;
+    if (ok === null || ok === undefined || Number(ok) !== 1) {
       throw new ServiceUnavailableException('Operación en curso, intente de nuevo.');
     }
     try {

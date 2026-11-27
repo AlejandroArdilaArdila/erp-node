@@ -5,7 +5,7 @@ import { tablaLegado } from './tabla-legado.js';
  * llx_personal_access_tokens: tokens del POS. Misma estructura que la tabla
  * de Laravel Sanctum de apipos (+ refresh y device), para que un token emitido
  * por apipos o por erp-node sirva en ambos mientras conviven.
- * Script de creación: sql/2026-11-27_personal_access_tokens.sql
+ * Script de creación: sql/2026-11-27_login-pos.sql
  */
 export const tokensAcceso = tablaLegado('personal_access_tokens', {
   id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
