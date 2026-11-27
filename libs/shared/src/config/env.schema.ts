@@ -37,6 +37,11 @@ export const esquemaEnv = z
 
     // Compatibilidad Dolibarr: $dolibarr_main_instance_unique_id de conf.php
     DOLIBARR_INSTANCE_KEY: z.string().default(''),
+
+    // URL pública de apipos del cliente (su APP_URL). De ahí descarga el POS de
+    // escritorio sus instaladores: <url>/pos.exe y <url>/pos.deb.
+    // Mismo valor por defecto que APP_URL en Laravel.
+    POS_ACTUALIZACION_URL_BASE: z.string().default('http://localhost'),
   })
   .superRefine((env, ctx) => {
     // Swagger nunca queda expuesto sin credenciales fuertes.

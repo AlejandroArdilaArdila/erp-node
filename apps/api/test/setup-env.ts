@@ -11,6 +11,7 @@ Object.assign(process.env, {
   LEGACY_DB_NAME: 'no_existe',
   LEGACY_DB_USER: 'test',
   DOLIBARR_INSTANCE_KEY: 'clave-de-prueba',
+  POS_ACTUALIZACION_URL_BASE: 'https://apipos.pruebas.test/',
   SWAGGER_ENABLED: 'true',
   SWAGGER_USER: 'equipo',
   SWAGGER_PASSWORD: 'clave-docs-de-prueba-123',

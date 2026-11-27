@@ -72,4 +72,9 @@ export class AppConfig {
   get dolibarrInstanceKey(): string {
     return this.get('DOLIBARR_INSTANCE_KEY');
   }
+
+  /** URL base de los instaladores del POS de escritorio (APP_URL de apipos). */
+  get urlBaseActualizacionPos(): string {
+    return this.get('POS_ACTUALIZACION_URL_BASE');
+  }
 }
