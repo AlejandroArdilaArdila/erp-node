@@ -20,16 +20,34 @@ export function mensajeSeguro(error: unknown): string {
   return limpiarTexto(error.message) ?? '';
 }
 
-/** Serializador `err` de pino que elimina datos sensibles de errores de base de datos. */
-export function serializarErrorSeguro(error: unknown): Record<string, unknown> {
-  if (!(error instanceof Error)) {
-    return { message: String(error) };
+const CAMPOS_SENSIBLES = ['params', 'sql', 'values'] as const;
+
+function limpiarSerializado(origen: Record<string, unknown>, nivel = 0): Record<string, unknown> {
+  const limpio: Record<string, unknown> = { ...origen };
+  for (const campo of CAMPOS_SENSIBLES) delete limpio[campo];
+  if (typeof limpio.message === 'string') limpio.message = limpiarTexto(limpio.message);
+  if (typeof limpio.stack === 'string') limpio.stack = limpiarTexto(limpio.stack);
+  const causa = limpio.cause;
+  if (causa && typeof causa === 'object' && nivel < 5) {
+    limpio.cause = limpiarSerializado(causa as Record<string, unknown>, nivel + 1);
   }
-  const serializado = stdSerializers.err(error) as unknown as Record<string, unknown>;
-  delete serializado.params;
-  delete serializado.sql;
-  delete serializado.values;
-  serializado.message = limpiarTexto(serializado.message as string | undefined);
-  serializado.stack = limpiarTexto(serializado.stack as string | undefined);
-  return serializado;
+  return limpio;
+}
+
+/**
+ * Serializador `err` de pino que elimina datos sensibles de errores de base de datos.
+ *
+ * pino-http envuelve los serializadores: primero aplica el de pino y luego llama a
+ * este con un objeto PLANO ({ type, message, stack, ... }), no con el `Error`.
+ * Por eso se aceptan las dos formas. Antes, el objeto plano se convertía con
+ * String() y los logs mostraban "[object Object]" en lugar del error.
+ */
+export function serializarErrorSeguro(error: unknown): Record<string, unknown> {
+  if (error instanceof Error) {
+    return limpiarSerializado(stdSerializers.err(error));
+  }
+  if (error !== null && typeof error === 'object') {
+    return limpiarSerializado(error as Record<string, unknown>);
+  }
+  return { message: String(error) };
 }

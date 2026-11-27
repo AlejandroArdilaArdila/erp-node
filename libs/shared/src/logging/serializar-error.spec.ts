@@ -1,3 +1,4 @@
+import { stdSerializers } from 'pino';
 import { mensajeSeguro, serializarErrorSeguro } from './serializar-error.js';
 
 const SECRETO = 'api-key-super-secreta';
@@ -35,6 +36,29 @@ describe('serializarErrorSeguro', () => {
     const resultado = serializarErrorSeguro(new Error('Algo falló'));
     expect(resultado.message).toBe('Algo falló');
     expect(resultado.stack).toContain('Algo falló');
+  });
+});
+
+describe('serializarErrorSeguro con el objeto ya serializado (como lo llama pino-http)', () => {
+  // Regresión: pino-http aplica primero stdSerializers.err y pasa un objeto plano.
+  // Antes se registraba "[object Object]" y se perdía el error.
+  const comoPinoHttp = (e: Error) => serializarErrorSeguro(stdSerializers.err(e));
+
+  it('conserva el mensaje y el stack', () => {
+    const resultado = comoPinoHttp(new Error('failed with status code 503'));
+    expect(resultado.message).toBe('failed with status code 503');
+    expect(resultado.stack).toContain('failed with status code 503');
+  });
+
+  it('tampoco deja parámetros de la consulta, ni en la causa', () => {
+    const plano = {
+      ...(stdSerializers.err(errorDeConsulta()) as unknown as Record<string, unknown>),
+      params: [1, SECRETO],
+      cause: { message: 'x', sql: `select '${SECRETO}'` },
+    };
+    const resultado = JSON.stringify(serializarErrorSeguro(plano));
+    expect(resultado).not.toContain(SECRETO);
+    expect(resultado).toContain('params: [oculto]');
   });
 });
 
