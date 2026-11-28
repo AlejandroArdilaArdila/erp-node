@@ -42,6 +42,11 @@ export const esquemaEnv = z
     // escritorio sus instaladores: <url>/pos.exe y <url>/pos.deb.
     // Mismo valor por defecto que APP_URL en Laravel.
     POS_ACTUALIZACION_URL_BASE: z.string().default('http://localhost'),
+
+    // Carpeta "documents" de Dolibarr ($dolibarr_main_data_root), igual que
+    // DOL_DOCUMENTS_ROOT de apipos. Su carpeta padre es la raíz del sitio, donde
+    // está htdocs/ (de ahí se leen, p. ej., las imágenes del carrusel del POS).
+    DOL_DOCUMENTS_ROOT: z.string().default(''),
   })
   .superRefine((env, ctx) => {
     // Swagger nunca queda expuesto sin credenciales fuertes.

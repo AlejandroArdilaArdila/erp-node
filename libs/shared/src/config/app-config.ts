@@ -77,4 +77,9 @@ export class AppConfig {
   get urlBaseActualizacionPos(): string {
     return this.get('POS_ACTUALIZACION_URL_BASE');
   }
+
+  /** Carpeta "documents" de Dolibarr (DOL_DOCUMENTS_ROOT de apipos). */
+  get dolibarrDocumentsRoot(): string {
+    return this.get('DOL_DOCUMENTS_ROOT');
+  }
 }

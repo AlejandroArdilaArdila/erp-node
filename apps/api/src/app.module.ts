@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from '@erp/database';
 import { ConfigModule, LoggingModule } from '@erp/shared';
 import { AuthHttpModule } from './auth/auth-http.module.js';
+import { CarruselHttpModule } from './carrusel/carrusel-http.module.js';
 import { ConfiguracionHttpModule } from './configuracion/configuracion-http.module.js';
 import { HealthModule } from './health/health.module.js';
 import { MensajesHttpModule } from './mensajes/mensajes-http.module.js';
@@ -29,6 +30,7 @@ import { TirillasHttpModule } from './tirillas/tirillas-http.module.js';
     SorteosHttpModule,
     TirillasHttpModule,
     TercerosHttpModule,
+    CarruselHttpModule,
   ],
 })
 export class AppModule {}
