@@ -8,6 +8,8 @@ export const terceros = tablaLegado('societe', {
   tvaIntra: varchar('tva_intra', { length: 20 }),
   phone: varchar('phone', { length: 20 }),
   fournisseur: tinyint('fournisseur'),
+  /** 1 activo, 0 cerrado. */
+  status: tinyint('status'),
 });
 
 /** llx_societe_commerciaux: vendedores (usuarios) asignados a un tercero. */

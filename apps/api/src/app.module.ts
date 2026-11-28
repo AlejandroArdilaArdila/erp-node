@@ -8,6 +8,7 @@ import { MensajesHttpModule } from './mensajes/mensajes-http.module.js';
 import { PosModule } from './pos/pos.module.js';
 import { ProductosHttpModule } from './productos/productos-http.module.js';
 import { SorteosHttpModule } from './sorteos/sorteos-http.module.js';
+import { TercerosHttpModule } from './terceros/terceros-http.module.js';
 import { TirillasHttpModule } from './tirillas/tirillas-http.module.js';
 
 /**
@@ -27,6 +28,7 @@ import { TirillasHttpModule } from './tirillas/tirillas-http.module.js';
     ConfiguracionHttpModule,
     SorteosHttpModule,
     TirillasHttpModule,
+    TercerosHttpModule,
   ],
 })
 export class AppModule {}
