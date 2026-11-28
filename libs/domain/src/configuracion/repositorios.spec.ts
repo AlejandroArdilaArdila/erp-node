@@ -1,6 +1,7 @@
 import * as schema from '@erp/database';
 import type { LegacyDb } from '@erp/database';
 import { drizzle } from 'drizzle-orm/mysql2';
+import { CatalogosRepositorio } from './catalogos.repositorio.js';
 import { CiudadesRepositorio } from './ciudades.repositorio.js';
 import { ConstantesRepositorio } from './constantes.repositorio.js';
 
@@ -72,5 +73,53 @@ describe('CiudadesRepositorio', () => {
     ]);
 
     expect(consultas[0].sql).toContain('order by `llx_c_ciudades_fe`.`ciudad`');
+  });
+});
+
+describe('CatalogosRepositorio', () => {
+  it('extrafield por nombre con LIKE (como el original) y solo la primera fila', async () => {
+    const { db, consultas } = crearDb([['a:0:{}']]);
+
+    await expect(new CatalogosRepositorio(db).parametrosExtrafield('categoria')).resolves.toBe(
+      'a:0:{}',
+    );
+
+    const { sql, params } = consultas[0];
+    expect(sql).toContain('from `llx_extrafields`');
+    expect(sql).toContain('where `llx_extrafields`.`name` like ?');
+    expect(sql).toContain('limit ?');
+    expect(params).toEqual(['categoria', 1]);
+  });
+
+  it('extrafield inexistente → null', async () => {
+    const { db } = crearDb([]);
+    await expect(
+      new CatalogosRepositorio(db).parametrosExtrafield('categoria'),
+    ).resolves.toBeNull();
+  });
+
+  it('tarifas de IVA activas del país, sin ORDER BY (orden de la tabla, como el original)', async () => {
+    const { db, consultas } = crearDb([['19', 19, '0', '0']]);
+
+    await expect(new CatalogosRepositorio(db).tarifasIvaActivas(70)).resolves.toEqual([
+      { codigo: '19', tarifa: 19, impuestoLocal1: '0', tipoImpuestoLocal1: '0' },
+    ]);
+
+    const { sql, params } = consultas[0];
+    expect(sql).toContain('from `llx_c_tva`');
+    expect(sql).toContain('(`llx_c_tva`.`fk_pays` = ? and `llx_c_tva`.`active` = ?)');
+    expect(sql).not.toContain('order by');
+    expect(params).toEqual([70, 1]);
+  });
+
+  it('unidades por tipo', async () => {
+    const { db, consultas } = crearDb([[-3, 'g']]);
+
+    await expect(new CatalogosRepositorio(db).unidadesPorTipo('weight')).resolves.toEqual([
+      { escala: -3, abreviatura: 'g' },
+    ]);
+
+    expect(consultas[0].sql).toContain('where `llx_c_units`.`unit_type` = ?');
+    expect(consultas[0].params).toEqual(['weight']);
   });
 });

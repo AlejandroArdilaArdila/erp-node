@@ -12,4 +12,5 @@ export * from './http/quitar-slash-final.middleware.js';
 export * from './logging/logging.module.js';
 export * from './logging/serializar-error.js';
 export * from './php/php.js';
+export * from './php/unserialize.js';
 export * from './tiempo/reloj.js';

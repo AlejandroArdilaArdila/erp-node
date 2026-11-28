@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CatalogosRepositorio } from './catalogos.repositorio.js';
 import { CiudadesRepositorio } from './ciudades.repositorio.js';
 import { ConfiguracionPosService } from './configuracion-pos.service.js';
 import { ConstantesRepositorio } from './constantes.repositorio.js';
@@ -10,6 +11,7 @@ import { ConstantesService } from './constantes.service.js';
  */
 @Module({
   providers: [
+    CatalogosRepositorio,
     ConstantesRepositorio,
     CiudadesRepositorio,
     ConstantesService,

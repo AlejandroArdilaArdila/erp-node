@@ -3,9 +3,11 @@ import { ApiOperation, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger
 import { ApiKeyGuard } from '@erp/domain/auth';
 import {
   type ActualizacionPosLegado,
+  type CatalogosProductoLegado,
   ConfiguracionPosService,
   type DepartamentosYCiudadesLegado,
 } from '@erp/domain/configuracion';
+import { AlmacenesService, type SucursalLegado } from '@erp/domain/inventario';
 
 /**
  * Configuración que consume el POS. Mantiene las URLs de apipos
@@ -16,7 +18,10 @@ import {
 @Controller('api.php/integrospos')
 @UseGuards(ApiKeyGuard)
 export class ConfiguracionController {
-  constructor(private readonly configuracion: ConfiguracionPosService) {}
+  constructor(
+    private readonly configuracion: ConfiguracionPosService,
+    private readonly almacenes: AlmacenesService,
+  ) {}
 
   /** Portado de ConfiguracionController@departamentosYCiudades (apipos). */
   @Get('customers/posapi/departamentos')
@@ -37,5 +42,26 @@ export class ConfiguracionController {
   @ApiResponse({ status: 404, description: 'No hay una actualización configurada' })
   verificarActualizacion(): Promise<ActualizacionPosLegado> {
     return this.configuracion.verificarActualizacion();
+  }
+
+  /** Portado de ConfiguracionController@categorieIva (apipos). */
+  @Get('pos/getCategorieIva')
+  @ApiOperation({
+    summary:
+      'Catalogos del formulario de producto: tarifas de IVA, categorias, unidades de peso y volumen',
+  })
+  @ApiResponse({ status: 200, description: 'Catalogos para crear productos desde el POS' })
+  catalogosProducto(): Promise<CatalogosProductoLegado> {
+    return this.configuracion.catalogosProducto();
+  }
+
+  /** Portado de ConfiguracionController@almacenesJerarquia (apipos). */
+  @Get('pos/almacenes/jerarquia')
+  @ApiOperation({
+    summary: 'Jerarquia de almacenes: sucursales (almacenes padre) con sus almacenes hijos',
+  })
+  @ApiResponse({ status: 200, description: 'Listado de sucursales con sus almacenes hijos' })
+  almacenesJerarquia(): Promise<SucursalLegado[]> {
+    return this.almacenes.jerarquia();
   }
 }

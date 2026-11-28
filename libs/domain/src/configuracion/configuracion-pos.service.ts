@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { AppConfig, phpEntero, phpVacio } from '@erp/shared';
+import { AppConfig, phpEntero, phpUnserialize, phpVacio } from '@erp/shared';
+import { CatalogosRepositorio } from './catalogos.repositorio.js';
 import { CiudadesRepositorio } from './ciudades.repositorio.js';
 import { ConstantesService } from './constantes.service.js';
 
@@ -19,6 +20,23 @@ export interface ActualizacionPosLegado {
   linux_url: string;
 }
 
+/** Opción de un catálogo: `valor` siempre es texto; `label` conserva el tipo original. */
+export interface OpcionLegado {
+  valor: string;
+  label: unknown;
+}
+
+/** Respuesta de GET /api.php/integrospos/pos/getCategorieIva (contrato apipos). */
+export interface CatalogosProductoLegado {
+  ivas: OpcionLegado[];
+  categorias: OpcionLegado[];
+  peso: OpcionLegado[];
+  volumen: OpcionLegado[];
+}
+
+/** Colombia en llx_c_country. */
+const ID_PAIS_COLOMBIA = 70;
+
 /** `rtrim($texto, '/')` de PHP. */
 function quitarBarrasFinales(texto: string): string {
   return texto.replace(/\/+$/, '');
@@ -27,6 +45,7 @@ function quitarBarrasFinales(texto: string): string {
 @Injectable()
 export class ConfiguracionPosService {
   constructor(
+    private readonly catalogos: CatalogosRepositorio,
     private readonly ciudades: CiudadesRepositorio,
     private readonly constantes: ConstantesService,
     private readonly config: AppConfig,
@@ -87,6 +106,53 @@ export class ConfiguracionPosService {
       forzar: !phpVacio(valores.get('POS_UPDATE_FORZAR')),
       windows_url: `${urlBase}/pos.exe`,
       linux_url: `${urlBase}/pos.deb`,
+    };
+  }
+
+  /**
+   * Réplica de ConfiguracionService::getCategorieIva (apipos): catálogos del
+   * formulario de producto del POS.
+   *
+   * - `categorias`: opciones del extrafield "categoria" (param guardado con
+   *   serialize() de PHP). Si no existe o no se puede leer → [].
+   * - `ivas`: tarifas activas de Colombia. Si localtax1_type es 1 (impoconsumo)
+   *   el valor es localtax1; si no, la tarifa de IVA. `(string)` de un DOUBLE de
+   *   PHP coincide con `String()` para tarifas como 19, 5 o 2.5.
+   * - `peso` / `volumen`: unidades con su escala como texto (NULL → '').
+   *
+   * Diferencia conocida: si `options` existiera pero no fuera un array, el
+   * original fallaría con 500 (warning de foreach convertido en excepción por
+   * Laravel); aquí se devuelve []. No ocurre con datos guardados por Dolibarr.
+   */
+  async catalogosProducto(): Promise<CatalogosProductoLegado> {
+    const categorias: OpcionLegado[] = [];
+    const param = await this.catalogos.parametrosExtrafield('categoria');
+    if (!phpVacio(param)) {
+      const parametros = phpUnserialize(param as string);
+      const opciones = parametros instanceof Map ? parametros.get('options') : undefined;
+      if (opciones instanceof Map) {
+        for (const [clave, opcion] of opciones) {
+          categorias.push({ valor: String(clave), label: opcion });
+        }
+      }
+    }
+
+    const tarifas = await this.catalogos.tarifasIvaActivas(ID_PAIS_COLOMBIA);
+    const peso = await this.catalogos.unidadesPorTipo('weight');
+    const volumen = await this.catalogos.unidadesPorTipo('volume');
+    const unidad = (u: { escala: number | null; abreviatura: string | null }): OpcionLegado => ({
+      valor: u.escala === null ? '' : String(u.escala),
+      label: u.abreviatura,
+    });
+
+    return {
+      ivas: tarifas.map((t) => ({
+        valor: phpEntero(t.tipoImpuestoLocal1) === 1 ? t.impuestoLocal1 : String(t.tarifa),
+        label: t.codigo,
+      })),
+      categorias,
+      peso: peso.map(unidad),
+      volumen: volumen.map(unidad),
     };
   }
 }

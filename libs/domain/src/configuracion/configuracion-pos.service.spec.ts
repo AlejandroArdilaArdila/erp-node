@@ -1,5 +1,6 @@
 import { HttpException } from '@nestjs/common';
 import type { AppConfig } from '@erp/shared';
+import type { CatalogosRepositorio, TarifaIva, UnidadMedida } from './catalogos.repositorio.js';
 import type { CiudadesRepositorio } from './ciudades.repositorio.js';
 import { ConfiguracionPosService } from './configuracion-pos.service.js';
 import type { ConstantesService } from './constantes.service.js';
@@ -7,9 +8,23 @@ import type { ConstantesService } from './constantes.service.js';
 interface OpcionesPrueba {
   constantes?: Record<string, string>;
   urlBase?: string;
+  paramCategoria?: string | null;
+  tarifas?: TarifaIva[];
+  unidades?: Record<string, UnidadMedida[]>;
 }
 
-function crear({ constantes = {}, urlBase = 'https://apipos.cliente.com' }: OpcionesPrueba = {}) {
+function crear({
+  constantes = {},
+  urlBase = 'https://apipos.cliente.com',
+  paramCategoria = null,
+  tarifas = [],
+  unidades = {},
+}: OpcionesPrueba = {}) {
+  const catalogos = {
+    parametrosExtrafield: vi.fn().mockResolvedValue(paramCategoria),
+    tarifasIvaActivas: vi.fn().mockResolvedValue(tarifas),
+    unidadesPorTipo: vi.fn(async (tipo: string) => unidades[tipo] ?? []),
+  };
   const ciudades = {
     departamentosActivos: vi.fn().mockResolvedValue([
       { codigo: '05', nombre: 'Antioquia' },
@@ -31,11 +46,12 @@ function crear({ constantes = {}, urlBase = 'https://apipos.cliente.com' }: Opci
   };
   const config = { urlBaseActualizacionPos: urlBase };
   const servicio = new ConfiguracionPosService(
+    catalogos as unknown as CatalogosRepositorio,
     ciudades as unknown as CiudadesRepositorio,
     servicioConstantes as unknown as ConstantesService,
     config as unknown as AppConfig,
   );
-  return { servicio, servicioConstantes };
+  return { servicio, servicioConstantes, catalogos };
 }
 
 describe('ConfiguracionPosService.departamentosYCiudades', () => {
@@ -126,5 +142,65 @@ describe('ConfiguracionPosService.verificarActualizacion', () => {
       windows_url: 'https://apipos.cliente.com/pos.exe',
       linux_url: 'https://apipos.cliente.com/pos.deb',
     });
+  });
+});
+
+describe('ConfiguracionPosService.catalogosProducto (réplica de getCategorieIva)', () => {
+  it('arma los cuatro catálogos', async () => {
+    const { servicio, catalogos } = crear({
+      // serialize() de PHP 8.3 de ['options' => [1 => 'Abarrotes', 'A' => 'Lácteos ñ']]
+      paramCategoria: 'a:1:{s:7:"options";a:2:{i:1;s:9:"Abarrotes";s:1:"A";s:11:"Lácteos ñ";}}',
+      tarifas: [
+        { codigo: 'Excento', tarifa: 0, impuestoLocal1: '0', tipoImpuestoLocal1: '0' },
+        { codigo: '19', tarifa: 19, impuestoLocal1: '0', tipoImpuestoLocal1: '0' },
+        { codigo: '2.5', tarifa: 2.5, impuestoLocal1: '0', tipoImpuestoLocal1: '0' },
+        { codigo: 'IC8', tarifa: 0, impuestoLocal1: '8', tipoImpuestoLocal1: '1' },
+      ],
+      unidades: {
+        weight: [
+          { escala: 0, abreviatura: 'kg' },
+          { escala: -3, abreviatura: 'g' },
+        ],
+        volume: [
+          { escala: 98, abreviatura: 'L' },
+          { escala: null, abreviatura: null },
+        ],
+      },
+    });
+
+    await expect(servicio.catalogosProducto()).resolves.toEqual({
+      ivas: [
+        { valor: '0', label: 'Excento' },
+        { valor: '19', label: '19' },
+        { valor: '2.5', label: '2.5' },
+        { valor: '8', label: 'IC8' },
+      ],
+      categorias: [
+        { valor: '1', label: 'Abarrotes' },
+        { valor: 'A', label: 'Lácteos ñ' },
+      ],
+      peso: [
+        { valor: '0', label: 'kg' },
+        { valor: '-3', label: 'g' },
+      ],
+      volumen: [
+        { valor: '98', label: 'L' },
+        { valor: '', label: null },
+      ],
+    });
+    expect(catalogos.parametrosExtrafield).toHaveBeenCalledWith('categoria');
+    expect(catalogos.tarifasIvaActivas).toHaveBeenCalledWith(70);
+  });
+
+  it.each([
+    ['sin extrafield', null],
+    ['param vacío', ''],
+    ['param "0" (falso en PHP)', '0'],
+    ['param que no es serializado', 'basura'],
+    ['sin options', 'a:1:{s:4:"otra";b:1;}'],
+    ['options no es array', 'a:1:{s:7:"options";s:3:"abc";}'],
+  ])('%s → categorias []', async (_caso, paramCategoria) => {
+    const { servicio } = crear({ paramCategoria });
+    await expect(servicio.catalogosProducto()).resolves.toMatchObject({ categorias: [] });
   });
 });
