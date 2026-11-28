@@ -5,6 +5,7 @@
 export * from './categorias.js';
 export * from './permisos.js';
 export * from './pos.js';
+export * from './productos.js';
 export * from './sesiones.js';
 export * from './terceros.js';
 export * from './usuarios.js';
