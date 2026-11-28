@@ -5,6 +5,7 @@ import { AuthHttpModule } from './auth/auth-http.module.js';
 import { CarruselHttpModule } from './carrusel/carrusel-http.module.js';
 import { ConfiguracionHttpModule } from './configuracion/configuracion-http.module.js';
 import { HealthModule } from './health/health.module.js';
+import { InformesHttpModule } from './informes/informes-http.module.js';
 import { MensajesHttpModule } from './mensajes/mensajes-http.module.js';
 import { PosModule } from './pos/pos.module.js';
 import { ProductosHttpModule } from './productos/productos-http.module.js';
@@ -31,6 +32,7 @@ import { TirillasHttpModule } from './tirillas/tirillas-http.module.js';
     TirillasHttpModule,
     TercerosHttpModule,
     CarruselHttpModule,
+    InformesHttpModule,
   ],
 })
 export class AppModule {}
