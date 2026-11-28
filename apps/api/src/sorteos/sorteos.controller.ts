@@ -1,7 +1,9 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Res, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { ApiKeyGuard } from '@erp/domain/auth';
-import { type SorteosPosLegado, SorteosService } from '@erp/domain/sorteos';
+import { SorteosService } from '@erp/domain/sorteos';
+import { responderJsonPhp } from '@erp/shared';
+import type { Response } from 'express';
 
 /** Sorteos del POS. Mantiene las URLs de apipos. */
 @ApiTags('Sorteos')
@@ -18,7 +20,8 @@ export class SorteosController {
   @Get('getSorteos')
   @ApiOperation({ summary: 'Sorteos activos vigentes hoy y proximos, para el POS' })
   @ApiResponse({ status: 200, description: '{ vigentes: [...], proximos: [...] }' })
-  vigentesYProximos(): Promise<SorteosPosLegado> {
-    return this.sorteos.vigentesYProximos();
+  async vigentesYProximos(@Res() res: Response): Promise<void> {
+    // fk_clientes y fk_productos son JSON de la base: se escriben como json_encode de PHP.
+    responderJsonPhp(res, await this.sorteos.vigentesYProximos());
   }
 }

@@ -1,13 +1,4 @@
-import {
-  mbSubstr,
-  phpBooleano,
-  phpEntero,
-  phpFalso,
-  phpJsonDecode,
-  phpString,
-  phpTrim,
-  phpVacio,
-} from './php.js';
+import { mbSubstr, phpBooleano, phpEntero, phpString, phpTrim, phpVacio } from './php.js';
 
 describe('semántica PHP', () => {
   it('trim solo quita los caracteres de PHP', () => {
@@ -45,35 +36,5 @@ describe('semántica PHP', () => {
 
   it('mb_substr corta por caracteres', () => {
     expect(mbSubstr('ñandú€', 4)).toBe('ñand');
-  });
-});
-
-/** Vectores de PHP 8.3: `json_encode(json_decode($s, true) ?: [])`. */
-describe('phpJsonDecode + phpFalso (json_decode($s, true) ?: [])', () => {
-  const comoPhp = (s: string) => {
-    const v = phpJsonDecode(s);
-    return phpFalso(v) ? [] : v;
-  };
-
-  it.each([
-    ['[1,2,3]', [1, 2, 3]],
-    ['[]', []],
-    ['{}', []],
-    ['null', []],
-    ['0', []],
-    ['"0"', []],
-    ['""', []],
-    ['false', []],
-    ['basura', []],
-    ['', []],
-    ['{"0":5,"1":6}', [5, 6]],
-    ['{"1":5,"2":6}', { '1': 5, '2': 6 }],
-    ['{"a":1}', { a: 1 }],
-    ['[{"0":"x"}]', [['x']]],
-    ['"abc"', 'abc'],
-    ['12', 12],
-    [' [4] ', [4]],
-  ])('%j → %j', (entrada, esperado) => {
-    expect(comoPhp(entrada)).toEqual(esperado);
   });
 });

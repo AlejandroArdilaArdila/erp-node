@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { phpFalso, phpJsonDecode, phpTrim } from '@erp/shared';
+import { type PhpJson, phpJsonDecode, phpJsonFalso, phpTrim } from '@erp/shared';
 import { type Sorteo, SorteosRepositorio } from './sorteos.repositorio.js';
 
 /** Sorteo en GET /api.php/integrospos/sorteos/getSorteos (contrato apipos). */
@@ -19,8 +19,9 @@ export interface SorteoPosLegado {
   tipo_calculo: string;
   observacion: string | null;
   permitir_entregar_sin_ctrl: number;
-  fk_clientes: unknown;
-  fk_productos: unknown;
+  /** json_decode tal cual: se responde con phpJsonEncode para conservar orden y tipos. */
+  fk_clientes: PhpJson | never[];
+  fk_productos: PhpJson | never[];
 }
 
 export interface SorteosPosLegado {
@@ -55,9 +56,9 @@ export function soloFecha(valor: string): string {
 }
 
 /** `json_decode($json ?? '[]', true) ?: []` de apipos. */
-function listaJson(json: string | null): unknown {
+function listaJson(json: string | null): PhpJson | never[] {
   const valor = phpJsonDecode(json ?? '[]');
-  return phpFalso(valor) ? [] : valor;
+  return phpJsonFalso(valor) ? [] : valor;
 }
 
 function formatear(sorteo: Sorteo): SorteoPosLegado {

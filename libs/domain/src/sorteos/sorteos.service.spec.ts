@@ -1,3 +1,4 @@
+import { phpJsonEncode } from '@erp/shared';
 import type { Sorteo, SorteosRepositorio } from './sorteos.repositorio.js';
 import { SorteosService, soloFecha } from './sorteos.service.js';
 
@@ -70,7 +71,10 @@ describe('SorteosService.vigentesYProximos (réplica de listarVigentesYProximos)
         tipo_calculo: 'proporcional',
         observacion: 'Válido en todas las sedes',
         permitir_entregar_sin_ctrl: 0,
-        fk_clientes: [10, 20],
+        fk_clientes: new Map([
+          [0, 10],
+          [1, 20],
+        ]),
         fk_productos: [],
       },
     ]);
@@ -84,15 +88,16 @@ describe('SorteosService.vigentesYProximos (réplica de listarVigentesYProximos)
   });
 
   it.each([
-    [null, []],
-    ['', []],
-    ['basura', []],
-    ['{}', []],
-    ['{"0":5,"1":6}', [5, 6]],
-    ['{"a":1}', { a: 1 }],
-  ])('fk_clientes %j → %j (json_decode ?: [])', async (json, esperado) => {
+    [null, '[]'],
+    ['', '[]'],
+    ['basura', '[]'],
+    ['{}', '[]'],
+    ['{"0":5,"1":6}', '[5,6]'],
+    ['{"a":1}', '{"a":1}'],
+    ['{"1":5,"0":6}', '{"1":5,"0":6}'],
+  ])('fk_clientes %j → %s (json_decode ?: [], como PHP 8.3)', async (json, esperado) => {
     const servicio = crear([{ ...BASE, clientesJson: json }]);
     const { vigentes } = await servicio.vigentesYProximos();
-    expect(vigentes[0].fk_clientes).toEqual(esperado);
+    expect(phpJsonEncode(vigentes[0].fk_clientes)).toBe(esperado);
   });
 });
