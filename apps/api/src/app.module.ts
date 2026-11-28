@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module.js';
 import { MensajesHttpModule } from './mensajes/mensajes-http.module.js';
 import { PosModule } from './pos/pos.module.js';
 import { ProductosHttpModule } from './productos/productos-http.module.js';
+import { SorteosHttpModule } from './sorteos/sorteos-http.module.js';
 
 /**
  * Raíz de la API. Aquí solo se registran módulos HTTP (controladores);
@@ -23,6 +24,7 @@ import { ProductosHttpModule } from './productos/productos-http.module.js';
     ProductosHttpModule,
     MensajesHttpModule,
     ConfiguracionHttpModule,
+    SorteosHttpModule,
   ],
 })
 export class AppModule {}
