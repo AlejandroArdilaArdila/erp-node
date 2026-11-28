@@ -12,4 +12,5 @@ export * from './productos.js';
 export * from './sesiones.js';
 export * from './sorteos.js';
 export * from './terceros.js';
+export * from './tirillas.js';
 export * from './usuarios.js';

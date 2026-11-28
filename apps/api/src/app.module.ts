@@ -8,6 +8,7 @@ import { MensajesHttpModule } from './mensajes/mensajes-http.module.js';
 import { PosModule } from './pos/pos.module.js';
 import { ProductosHttpModule } from './productos/productos-http.module.js';
 import { SorteosHttpModule } from './sorteos/sorteos-http.module.js';
+import { TirillasHttpModule } from './tirillas/tirillas-http.module.js';
 
 /**
  * Raíz de la API. Aquí solo se registran módulos HTTP (controladores);
@@ -25,6 +26,7 @@ import { SorteosHttpModule } from './sorteos/sorteos-http.module.js';
     MensajesHttpModule,
     ConfiguracionHttpModule,
     SorteosHttpModule,
+    TirillasHttpModule,
   ],
 })
 export class AppModule {}
